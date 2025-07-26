@@ -31,3 +31,4 @@ sqlparse==0.5.3
 urllib3==2.4.0
 black==24.3.0
 isort==5.13.2
+reportlab

@@ -41,6 +41,9 @@ class CustomUserBaseSerializer(serializers.ModelSerializer):
 
 
 class CustomUserWithRecipesSerializer(CustomUserBaseSerializer):
+    DEFAULT_RECIPES_LIMIT = 10
+    MAX_RECIPES_LIMIT = 100
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
@@ -53,9 +56,25 @@ class CustomUserWithRecipesSerializer(CustomUserBaseSerializer):
     def get_recipes(self, obj):
         request = self.context.get("request")
         recipes = obj.recipes.all().order_by("-pub_date")
-        limit = request.query_params.get("recipes_limit")
-        if limit and limit.isdigit():
-            recipes = recipes[: int(limit)]
+
+        limit = self.DEFAULT_RECIPES_LIMIT
+
+        if request and hasattr(request, "query_params"):
+            limit_param = request.query_params.get("recipes_limit")
+
+            if limit_param is not None:
+                try:
+                    requested_limit = int(limit_param)
+                    if requested_limit < 1:
+                        limit = self.DEFAULT_RECIPES_LIMIT
+                    elif requested_limit > self.MAX_RECIPES_LIMIT:
+                        limit = self.MAX_RECIPES_LIMIT
+                    else:
+                        limit = requested_limit
+                except (TypeError, ValueError):
+                    pass
+
+        recipes = recipes[:limit]
         return RecipeMiniSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
@@ -237,8 +256,38 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop("tags")
         instance = super().update(instance, validated_data)
         instance.tags.set(tags_data)
-        instance.recipe_ingredients.all().delete()
-        self.create_ingredients(ingredients_data, instance)
+
+        current_ingredients = instance.recipe_ingredients.all()
+        current_ingredient_ids = set()
+
+        ingredient_map = {item.ingredient_id: item for item in
+                          current_ingredients}
+
+        new_ingredients = []
+        for item in ingredients_data:
+            ingredient_id = item["id"]
+            amount = item["amount"]
+
+            if ingredient_id in ingredient_map:
+
+                existing = ingredient_map[ingredient_id]
+                existing.amount = amount
+                existing.save()
+            else:
+                new_ingredients.append(
+                    IngredientInRecipe(
+                        recipe=instance,
+                        ingredient_id=ingredient_id,
+                        amount=amount
+                    )
+                )
+            current_ingredient_ids.add(ingredient_id)
+
+        if new_ingredients:
+            IngredientInRecipe.objects.bulk_create(new_ingredients)
+        current_ingredients.exclude(ingredient_id__in=
+                                    current_ingredient_ids).delete()
+
         return instance
 
 

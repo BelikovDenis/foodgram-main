@@ -12,6 +12,14 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.conf import settings
+from django.core.mail import EmailMessage
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+from io import BytesIO
+import csv
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.mixins import RecipeActionMixin
@@ -251,26 +259,226 @@ class DownloadShoppingCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """Возвращает файл .txt со сводным списком ингредиентов."""
+        """Возвращает файл со списком покупок в выбранном формате."""
+        file_format = request.GET.get('format', 'txt').lower()
 
-        qs = IngredientInRecipe.objects.filter(
-            recipe__in_shopping_carts__user=request.user,
+        try:
+            qs = IngredientInRecipe.objects.filter(
+                recipe__in_shopping_carts__user=request.user,
+            )
+
+            if not qs.exists():
+                content = "Ваш список покупок пуст."
+                filename = "shopping_list.txt"
+
+                if file_format == 'pdf':
+                    buffer = self._generate_pdf([])
+                    return self._pdf_response(buffer, filename)
+                elif file_format == 'csv':
+                    return self._csv_response([], filename)
+                else:
+                    return self._text_response(content, filename)
+
+            aggregated = qs.values(
+                name=F("ingredient__name"),
+                unit=F("ingredient__measurement_unit"),
+            ).annotate(total=Sum("amount"))
+
+            data = [
+                {
+                    'name': item['name'],
+                    'unit': item['unit'],
+                    'total': item['total']
+                }
+                for item in aggregated
+            ]
+            filename = "shopping_list"
+
+            if file_format == 'pdf':
+                buffer = self._generate_pdf(data)
+                return self._pdf_response(buffer, f"{filename}.pdf")
+
+            elif file_format == 'csv':
+                return self._csv_response(data, f"{filename}.csv")
+
+            else:
+                content = self._generate_text_content(data)
+                return self._text_response(content, f"{filename}.txt")
+
+        except Exception as e:
+            error_msg = "Произошла ошибка при формировании списка покупок."
+            return Response(
+                {"error": error_msg},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def post(self, request):
+        """Отправляет список покупок по email."""
+        email = request.data.get('email', request.user.email)
+        send_format = request.data.get('format', 'txt').lower()
+
+        try:
+
+            qs = IngredientInRecipe.objects.filter(
+                recipe__in_shopping_carts__user=request.user,
+            )
+
+            if not qs.exists():
+                content = "Ваш список покупок пуст."
+                attachments = None
+            else:
+                aggregated = qs.values(
+                    name=F("ingredient__name"),
+                    unit=F("ingredient__measurement_unit"),
+                ).annotate(total=Sum("amount"))
+
+                data = [
+                    {
+                        'name': item['name'],
+                        'unit': item['unit'],
+                        'total': item['total']
+                    }
+                    for item in aggregated
+                ]
+
+                if send_format == 'pdf':
+                    buffer = self._generate_pdf(data)
+                    attachments = [(
+                        'shopping_list.pdf',
+                        buffer.getvalue(),
+                        'application/pdf'
+                    )]
+                    content = "Ваш список покупок во вложении."
+
+                elif send_format == 'csv':
+                    csv_content = self._generate_csv_content(data)
+                    attachments = [(
+                        'shopping_list.csv',
+                        csv_content,
+                        'text/csv'
+                    )]
+                    content = "Ваш список покупок во вложении."
+
+                else:
+                    content = self._generate_text_content(data)
+                    attachments = [(
+                        'shopping_list.txt',
+                        content,
+                        'text/plain'
+                    )]
+
+            email_msg = EmailMessage(
+                subject="Ваш список покупок",
+                body=content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[email],
+            )
+
+            if attachments:
+                for filename, content, mime_type in attachments:
+                    email_msg.attach(filename, content, mime_type)
+
+            email_msg.send()
+
+            return Response(
+                {"status": "Список покупок отправлен на вашу почту"},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": "Ошибка при отправке списка покупок"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _generate_text_content(self, data):
+        """Генерирует текстовое содержимое для списка покупок."""
+        lines = [f"{item['name']} ({item['unit']}) — {item['total']}" for item in data]
+        return "\n".join(lines)
+
+    def _generate_csv_content(self, data):
+        """Генерирует CSV содержимое для списка покупок."""
+        output = []
+        writer = csv.writer(output)
+        writer.writerow(['Ингредиент', 'Единица измерения', 'Количество'])
+        for item in data:
+            writer.writerow([item['name'], item['unit'], item['total']])
+        return '\n'.join([','.join(map(str, row)) for row in output])
+
+    def _generate_pdf(self, data):
+        """Генерирует PDF документ со списком покупок."""
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        title_style = styles['Heading1']
+        header_style = ParagraphStyle(
+            'Header',
+            parent=styles['Normal'],
+            fontSize=12,
+            textColor=colors.white,
+            alignment=1
         )
-        aggregated = qs.values(
-            name=F("ingredient__name"),
-            unit=F("ingredient__measurement_unit"),
-        ).annotate(total=Sum("amount"))
+        row_style = styles['Normal']
 
-        lines = [
-            f"{item['name']} ({item['unit']}) — {item['total']}"
-            for item in aggregated
-        ]
-        content = "\n".join(lines)
+        title = Paragraph("Список покупок", title_style)
+        elements.append(title)
+        elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+        if data:
+            table_data = [['Ингредиент', 'Единица измерения', 'Количество']]
+            for item in data:
+                table_data.append([
+                    item['name'],
+                    item['unit'],
+                    str(item['total'])
+                ])
+
+            table = Table(table_data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elements.append(table)
+        else:
+            elements.append(Paragraph("Ваш список покупок пуст.",
+                                      styles['Normal']))
+
+        doc.build(elements)
+        buffer.seek(0)
+        return buffer
+
+    def _text_response(self, content, filename):
+        """Возвращает текстовый HTTP ответ."""
         response = HttpResponse(
             content,
-            content_type="text/plain; charset=utf-8",
+            content_type='text/plain; charset=utf-8'
         )
-        response["Content-Disposition"] = (
-            'attachment; filename="shopping_list.txt"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    def _csv_response(self, data, filename):
+        """Возвращает CSV HTTP ответ."""
+        content = self._generate_csv_content(data)
+        response = HttpResponse(
+            content,
+            content_type='text/csv; charset=utf-8'
         )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    def _pdf_response(self, buffer, filename):
+        """Возвращает PDF HTTP ответ."""
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
