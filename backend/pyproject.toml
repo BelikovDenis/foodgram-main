@@ -1,0 +1,9 @@
+[tool.isort]
+profile = "black"
+line_length = 79
+known_first_party = ["api", "recipes", "user"]
+default_section = "THIRDPARTY"
+
+[tool.black]
+line-length = 79
+target-version = ['py38']
