@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
-
 class CustomUser(AbstractUser):
     email = models.EmailField(
         verbose_name="Email",
@@ -17,8 +16,8 @@ class CustomUser(AbstractUser):
         max_length=255,
     )
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
+    USERNAME_FIELD: str = "email"
+    REQUIRED_FIELDS: list[str] = ["username", "first_name", "last_name"]
 
     objects = UserManager()
 
@@ -26,5 +25,5 @@ class CustomUser(AbstractUser):
         verbose_name = "пользователь"
         verbose_name_plural = "Пользователи"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.email

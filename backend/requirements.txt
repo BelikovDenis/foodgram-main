@@ -5,7 +5,7 @@ asgiref==3.8.1
 certifi==2025.4.26
 cffi==1.17.1
 charset-normalizer==3.4.2
-cryptography==45.0.3
+cryptography==46.0.0
 defusedxml==0.7.1
 Django==5.0.6
 django-extensions==4.1
@@ -17,9 +17,9 @@ drf-extra-fields>=3.7.0
 idna==3.10
 oauthlib==3.2.2
 pillow==10.3.0
-psycopg2-binary==2.9.9
+psycopg2-binary==2.10.0
 pycparser==2.22
-PyJWT==2.9.0
+PyJWT==3.0.0
 python-dotenv==1.0.1
 python3-openid==3.2.0
 requests==2.32.3
