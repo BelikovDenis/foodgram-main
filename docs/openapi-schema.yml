@@ -35,13 +35,13 @@ paths:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/users/?page=4
+                    example: http://foodgram-belikov.servequake.com/api/users/?page=4
                     description: 'Ссылка на следующую страницу'
                   previous:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/users/?page=2
+                    example: http://foodgram-belikov.servequake.com/api/users/?page=2
                     description: 'Ссылка на предыдущую страницу'
                   results:
                     type: array
@@ -171,13 +171,13 @@ paths:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/recipes/?page=4
+                    example: http://foodgram-belikov.servequake.com/api/recipes/?page=4
                     description: 'Ссылка на следующую страницу'
                   previous:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/recipes/?page=2
+                    example: http://foodgram-belikov.servequake.com/api/recipes/?page=2
                     description: 'Ссылка на предыдущую страницу'
                   results:
                     type: array
@@ -560,13 +560,13 @@ paths:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/users/subscriptions/?page=4
+                    example: http://foodgram-belikov.servequake.com/api/users/subscriptions/?page=4
                     description: 'Ссылка на следующую страницу'
                   previous:
                     type: string
                     nullable: true
                     format: uri
-                    example: http://foodgram.example.org/api/users/subscriptions/?page=2
+                    example: http://foodgram-belikov.servequake.com/api/users/subscriptions/?page=2
                     description: 'Ссылка на предыдущую страницу'
                   results:
                     type: array
@@ -778,7 +778,7 @@ components:
           type: string
           format: uri
           description: 'Ссылка на аватар'
-          example: 'http://foodgram.example.org/media/users/image.png'
+          example: 'http://foodgram-belikov.servequake.com/media/users/image.png'
       required:
         - username
     UserWithRecipes:
@@ -823,7 +823,7 @@ components:
           type: string
           format: uri
           description: 'Ссылка на аватар'
-          example: 'http://foodgram.example.org/media/users/image.png'
+          example: 'http://foodgram-belikov.servequake.com/media/users/image.png'
     SetAvatar:
       description: 'Добавление аватара пользователя'
       type: object
@@ -842,7 +842,7 @@ components:
           type: string
           format: uri
           description: 'Ссылка на аватар'
-          example: 'http://foodgram.example.org/media/users/image.png'
+          example: 'http://foodgram-belikov.servequake.com/media/users/image.png'
 
     Tag:
       type: object
@@ -900,7 +900,7 @@ components:
         image:
           readOnly: true
           description: 'Ссылка на картинку на сайте'
-          example: 'http://foodgram.example.org/media/recipes/images/image.png'
+          example: 'http://foodgram-belikov.servequake.com/media/recipes/images/image.png'
           type: string
           format: uri
         text:
@@ -925,7 +925,7 @@ components:
           description: 'Название'
         image:
           description: 'Ссылка на картинку на сайте'
-          example: 'http://foodgram.example.org/media/recipes/images/image.png'
+          example: 'http://foodgram-belikov.servequake.com/media/recipes/images/image.png'
           type: string
           format: uri
         cooking_time:
@@ -939,7 +939,7 @@ components:
           type: string
           description: 'Сокращенная ссылка'
           format: uri
-          example: 'https://foodgram.example.org/s/3d0'
+          example: 'https://foodgram-belikov.servequake.com/s/3d0'
     Ingredient:
       type: object
       properties:

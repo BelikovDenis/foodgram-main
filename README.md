@@ -63,7 +63,7 @@ Foodgram - это веб-приложение для публикации рец
 
 bash
 
-git clone https://github.com/vysochenkodanil/foodgram.git
+git clone https://github.com/BelikovDenis/foodgram-main.git
 cd foodgram-project-react
 
     Создайте файл .env в папке infra/ с переменными окружения:
@@ -79,7 +79,7 @@ DB_PORT=5432
 
 SECRET_KEY=your-secret-key
 DEBUG=False
-ALLOWED_HOSTS=your-domain.com
+ALLOWED_HOSTS=foodgram-belikov.servequake.com
 
     Запустите контейнеры:
 
@@ -132,7 +132,7 @@ API Endpoints
 Полная документация API доступна после запуска проекта по адресу /api/docs/
 Администрирование
 
-Админ-панель доступна по адресу: https://final-foodgram.zapto.org/admin
+Админ-панель доступна по адресу: https://foodgram-belikov.servequake.com/admin
 
 Возможности:
 
@@ -155,11 +155,6 @@ API Endpoints
 bash
 
 docker-compose -f docker-compose.production.yml up -d --build
-
-Авторы
-
-    студент 53 кагорты Яндекс.Практикум
-
 
 Лицензия
 

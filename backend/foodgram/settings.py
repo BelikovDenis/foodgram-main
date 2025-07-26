@@ -12,8 +12,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://final-foodgram.zapto.org",
-    "http://final-foodgram.zapto.org",
+    "https://foodgram-belikov.servequake.com",
+    "http://foodgram-belikov.servequake.com",
 ]
 CSRF_COOKIE_SECURE = True
 
