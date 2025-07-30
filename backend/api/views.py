@@ -304,7 +304,6 @@ class DownloadShoppingCartView(APIView):
             else:
                 content = self._generate_text_content(data)
                 return self._text_response(content, f"{filename}.txt")
-
         except Exception as e:
             error_msg = "Произошла ошибка при формировании списка покупок."
             return Response(
@@ -393,7 +392,8 @@ class DownloadShoppingCartView(APIView):
 
     def _generate_text_content(self, data):
         """Генерирует текстовое содержимое для списка покупок."""
-        lines = [f"{item['name']} ({item['unit']}) — {item['total']}" for item in data]
+        lines = [f"{item['name']} ({item['unit']}) — {item['total']}"
+                 for item in data]
         return "\n".join(lines)
 
     def _generate_csv_content(self, data):
