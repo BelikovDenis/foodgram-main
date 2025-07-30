@@ -16,7 +16,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
 from io import BytesIO
 import csv
