@@ -304,7 +304,7 @@ class DownloadShoppingCartView(APIView):
             else:
                 content = self._generate_text_content(data)
                 return self._text_response(content, f"{filename}.txt")
-        except Exception as e:
+        except Exception:
             error_msg = "Произошла ошибка при формировании списка покупок."
             return Response(
                 {"error": error_msg},
@@ -384,7 +384,7 @@ class DownloadShoppingCartView(APIView):
                 status=status.HTTP_200_OK
             )
 
-        except Exception as e:
+        except Exception:
             return Response(
                 {"error": "Ошибка при отправке списка покупок"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -413,14 +413,6 @@ class DownloadShoppingCartView(APIView):
 
         styles = getSampleStyleSheet()
         title_style = styles['Heading1']
-        header_style = ParagraphStyle(
-            'Header',
-            parent=styles['Normal'],
-            fontSize=12,
-            textColor=colors.white,
-            alignment=1
-        )
-        row_style = styles['Normal']
 
         title = Paragraph("Список покупок", title_style)
         elements.append(title)

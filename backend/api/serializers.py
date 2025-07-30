@@ -285,8 +285,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
         if new_ingredients:
             IngredientInRecipe.objects.bulk_create(new_ingredients)
-        current_ingredients.exclude(ingredient_id__in=
-                                    current_ingredient_ids).delete()
+        current_ingredients.exclude(
+            ingredient_id__in=current_ingredient_ids).delete()
 
         return instance
 
