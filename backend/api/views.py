@@ -100,7 +100,7 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
         url_name='get-link',
     )
     def get_link(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
+        get_object_or_404(Recipe, pk=pk)
         url = request.build_absolute_uri(f'/recipes/{pk}/')
         return Response({'short-link': url}, status=status.HTTP_200_OK)
 
@@ -232,7 +232,7 @@ class DownloadShoppingCartView(APIView):
         email = request.data.get('email', request.user.email)
         send_format = request.data.get('format', 'txt').lower()
         data = self._prepare_shopping_list_data(request.user)
-        filename = 'shopping_list'
+
         if send_format == 'pdf':
             buffer = self._generate_pdf(data)
             attachments = [
