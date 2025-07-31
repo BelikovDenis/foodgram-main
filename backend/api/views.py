@@ -1,9 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Count, F, Prefetch, Sum
-from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.db.models import F, Sum
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
@@ -21,31 +20,22 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
 from io import BytesIO
 import csv
 
-from api.filters import IngredientFilter, RecipeFilter
+from api.filters import RecipeFilter
 from api.mixins import RecipeActionMixin
 from api.pagination import CustomLimitPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
-    CustomUserBaseSerializer,
-    CustomUserWithRecipesSerializer,
     FavoriteSerializer,
-    IngredientSerializer,
     RecipeReadSerializer,
     RecipeWriteSerializer,
     ShoppingCartSerializer,
-    TagPublicSerializer,
 )
-from api.utils.base62 import decode_base62
 from recipes.models import (
     Favorite,
-    Ingredient,
     IngredientInRecipe,
     Recipe,
     ShoppingCart,
-    Subscription,
-    Tag,
 )
-from user.models import CustomUser
 
 User = get_user_model()
 
@@ -123,7 +113,9 @@ class DownloadShoppingCartView(APIView):
         Формирует данные списка покупок отдельно от запросов.
         Возвращает агрегированные ингредиенты.
         """
-        qs = IngredientInRecipe.objects.filter(recipe__in_shopping_carts__user=user)
+        qs = IngredientInRecipe.objects.filter(
+            recipe__in_shopping_carts__user=user
+        )
         if not qs.exists():
             return []
         aggregated = qs.values(
@@ -185,8 +177,10 @@ class DownloadShoppingCartView(APIView):
             ]))
             elements.append(table)
         else:
-            elements.append(Paragraph('Ваш список покупок пуст.',
-                                     styles['Normal']))
+            elements.append(Paragraph(
+                'Ваш список покупок пуст.',
+                styles['Normal']
+            ))
         doc.build(elements)
         buffer.seek(0)
         return buffer
@@ -269,8 +263,8 @@ class DownloadShoppingCartView(APIView):
             to=[email],
         )
         if attachments:
-            for filename, content, mime_type in attachments:
-                email_msg.attach(filename, content, mime_type)
+            for attachment in attachments:
+                email_msg.attach(*attachment)
         email_msg.send()
         return Response(
             {'status': 'Список покупок отправлен на вашу почту'},
