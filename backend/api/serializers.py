@@ -2,8 +2,9 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from .constants import DEFAULT_RECIPES_LIMIT, INGREDIENT_MIN_AMOUNT, \
-                       MAX_RECIPES_LIMIT
+from .constants import (
+    DEFAULT_RECIPES_LIMIT, INGREDIENT_MIN_AMOUNT, MAX_RECIPES_LIMIT
+)
 from recipes.models import (
     Favorite,
     Ingredient,

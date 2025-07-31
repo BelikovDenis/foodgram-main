@@ -40,6 +40,7 @@ class RecipeFilter(FilterSet):
         model = Recipe
         fields = ('tags', 'author', 'is_in_shopping_cart', 'is_favorited')
 
+
 class IngredientFilter(FilterSet):
     name = filters.CharFilter(field_name='name', lookup_expr='istartswith')
 

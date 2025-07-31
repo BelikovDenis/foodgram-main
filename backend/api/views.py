@@ -49,6 +49,7 @@ from user.models import CustomUser
 
 User = get_user_model()
 
+
 class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
 
     queryset = Recipe.objects.order_by("-pub_date")
@@ -140,7 +141,7 @@ class DownloadShoppingCartView(APIView):
 
     def _generate_text_content(self, data):
         """Генерирует текстовое содержимое для списка покупок."""
-        lines = [f'{item['name']} ({item['unit']}) — {item['total']}'
+        lines = [f"{item['name']} ({item['unit']}) — {item['total']}"
                  for item in data]
         return '\n'.join(lines)
 

@@ -12,9 +12,11 @@ from .models import (
     Tag,
 )
 
+
 class IngredientInRecipeInline(admin.TabularInline):
     model = IngredientInRecipe
     extra = 1
+
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
@@ -42,10 +44,11 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def ingredients_summary(self, obj):
         ingredients = '<br>'.join(
-            ingredient.name + ': ' + str(amount.amount) +
-            ' ' + amount.measurement_unit
-            for ingredient, amount in zip(obj.ingredients.all(),
-                                          obj.ingredient_amounts.all())
+            f"{ingredient.name}: {amount.amount} {amount.measurement_unit}"
+            for ingredient, amount in zip(
+                obj.ingredients.all(),
+                obj.ingredient_amounts.all()
+            )
         )
         return mark_safe(ingredients)
     ingredients_summary.short_description = 'Ингредиенты'
@@ -58,6 +61,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorited_by.count()
     favorites_count.short_description = 'Добавлений в избранное'
 
+
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit', 'used_in_recipes_count')
@@ -68,18 +72,22 @@ class IngredientAdmin(admin.ModelAdmin):
         return obj.recipe_set.count()
     used_in_recipes_count.short_description = 'Применено в рецептах'
 
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name', 'slug')
 
+
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
 
+
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
