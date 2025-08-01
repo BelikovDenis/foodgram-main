@@ -13,12 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
 from django.core.mail import EmailMessage
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
 from io import BytesIO
-import csv
 
 from api.filters import RecipeFilter
 from api.mixins import RecipeActionMixin
@@ -30,6 +25,7 @@ from api.serializers import (
     RecipeWriteSerializer,
     ShoppingCartSerializer,
 )
+from api.utils import generate_text_content, generate_csv_content, generate_pdf
 from recipes.models import (
     Favorite,
     IngredientInRecipe,
@@ -41,8 +37,11 @@ User = get_user_model()
 
 
 class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
-
-    queryset = Recipe.objects.order_by("-pub_date")
+    queryset = Recipe.objects.order_by('-pub_date').select_related(
+        'author'
+    ).prefetch_related(
+        'tags', 'ingredients'
+    )
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     search_fields = ('^name', 'name')
@@ -109,10 +108,6 @@ class DownloadShoppingCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def _prepare_shopping_list_data(self, user):
-        """
-        Формирует данные списка покупок отдельно от запросов.
-        Возвращает агрегированные ингредиенты.
-        """
         qs = IngredientInRecipe.objects.filter(
             recipe__in_shopping_carts__user=user
         )
@@ -131,62 +126,7 @@ class DownloadShoppingCartView(APIView):
             for item in aggregated
         ]
 
-    def _generate_text_content(self, data):
-        """Генерирует текстовое содержимое для списка покупок."""
-        lines = [f"{item['name']} ({item['unit']}) — {item['total']}"
-                 for item in data]
-        return '\n'.join(lines)
-
-    def _generate_csv_content(self, data):
-        """Генерирует CSV содержимое для списка покупок."""
-        output = []
-        writer = csv.writer(output)
-        writer.writerow(['Ингредиент', 'Единица измерения', 'Количество'])
-        for item in data:
-            writer.writerow([item['name'], item['unit'], item['total']])
-        return '\n'.join([','.join(map(str, row)) for row in output])
-
-    def _generate_pdf(self, data):
-        """Генерирует PDF документ со списком покупок."""
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        elements = []
-        styles = getSampleStyleSheet()
-        title_style = styles['Heading1']
-        title = Paragraph('Список покупок', title_style)
-        elements.append(title)
-        elements.append(Paragraph("<br/><br/>", styles['Normal']))
-        if data:
-            table_data = [['Ингредиент', 'Единица измерения', 'Количество']]
-            for item in data:
-                table_data.append([
-                    item['name'],
-                    item['unit'],
-                    str(item['total'])
-                ])
-            table = Table(table_data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 12),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black)
-            ]))
-            elements.append(table)
-        else:
-            elements.append(Paragraph(
-                'Ваш список покупок пуст.',
-                styles['Normal']
-            ))
-        doc.build(elements)
-        buffer.seek(0)
-        return buffer
-
     def _text_response(self, content, filename):
-        """Возвращает текстовый HTTP ответ."""
         response = HttpResponse(
             content,
             content_type='text/plain; charset=utf-8'
@@ -194,9 +134,7 @@ class DownloadShoppingCartView(APIView):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
-    def _csv_response(self, data, filename):
-        """Возвращает CSV HTTP ответ."""
-        content = self._generate_csv_content(data)
+    def _csv_response(self, content, filename):
         response = HttpResponse(
             content,
             content_type='text/csv; charset=utf-8'
@@ -205,7 +143,6 @@ class DownloadShoppingCartView(APIView):
         return response
 
     def _pdf_response(self, buffer, filename):
-        """Возвращает PDF HTTP ответ."""
         response = HttpResponse(
             buffer.getvalue(),
             content_type='application/pdf'
@@ -214,58 +151,62 @@ class DownloadShoppingCartView(APIView):
         return response
 
     def get(self, request):
-        """Возвращает файл со списком покупок в выбранном формате."""
         file_format = request.GET.get('format', 'txt').lower()
         data = self._prepare_shopping_list_data(request.user)
         filename = 'shopping_list'
+
         if file_format == 'pdf':
-            buffer = self._generate_pdf(data)
+            buffer = generate_pdf(data)
             return self._pdf_response(buffer, f'{filename}.pdf')
         elif file_format == 'csv':
-            return self._csv_response(data, f'{filename}.csv')
+            content = generate_csv_content(data)
+            return self._csv_response(content, f'{filename}.csv')
         else:
-            content = self._generate_text_content(data)
+            content = generate_text_content(data)
             return self._text_response(content, f'{filename}.txt')
 
     def post(self, request):
-        """Отправляет список покупок по email."""
         email = request.data.get('email', request.user.email)
         send_format = request.data.get('format', 'txt').lower()
         data = self._prepare_shopping_list_data(request.user)
+        attachments = []
+        content = ''
 
         if send_format == 'pdf':
-            buffer = self._generate_pdf(data)
-            attachments = [
-                ('shopping_list.pdf',
-                 buffer.getvalue(),
-                 'application/pdf')
-            ]
+            buffer = generate_pdf(data)
+            attachments.append((
+                'shopping_list.pdf',
+                buffer.getvalue(),
+                'application/pdf'
+            ))
             content = 'Ваш список покупок во вложении.'
         elif send_format == 'csv':
-            csv_content = self._generate_csv_content(data)
-            attachments = [
-                ('shopping_list.csv',
-                 csv_content,
-                 'text/csv')
-            ]
+            csv_content = generate_csv_content(data)
+            attachments.append((
+                'shopping_list.csv',
+                csv_content,
+                'text/csv'
+            ))
             content = 'Ваш список покупок во вложении.'
         else:
-            content = self._generate_text_content(data)
-            attachments = [
-                ('shopping_list.txt',
-                 content,
-                 'text/plain')
-            ]
+            text_content = generate_text_content(data)
+            attachments.append((
+                'shopping_list.txt',
+                text_content,
+                'text/plain'
+            ))
+            content = 'Ваш список покупок во вложении.'
+
         email_msg = EmailMessage(
             subject='Ваш список покупок',
             body=content,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[email],
         )
-        if attachments:
-            for attachment in attachments:
-                email_msg.attach(*attachment)
+        for attachment in attachments:
+            email_msg.attach(*attachment)
         email_msg.send()
+
         return Response(
             {'status': 'Список покупок отправлен на вашу почту'},
             status=status.HTTP_200_OK

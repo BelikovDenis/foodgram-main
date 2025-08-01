@@ -60,13 +60,11 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
-        verbose_name='Тег',
+        verbose_name='Теги',
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата публикации',
-        null=True,
-        blank=True,
     )
 
     class Meta:
@@ -158,6 +156,7 @@ class IngredientInRecipe(models.Model):
         verbose_name='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
         validators=[
             MinValueValidator(INGREDIENT_MIN_AMOUNT),
             MaxValueValidator(INGREDIENT_MAX_AMOUNT)
@@ -173,6 +172,9 @@ class IngredientInRecipe(models.Model):
         ]
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return f'{self.recipe}: {self.ingredient} - {self.amount}'
 
 
 class Favorite(BaseFavoriteShopping):
@@ -197,3 +199,4 @@ class Favorite(BaseFavoriteShopping):
             )
         ]
         verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'

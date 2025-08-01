@@ -33,18 +33,18 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
     inlines = (IngredientInRecipeInline,)
 
+    @admin.display(description='Время приготовления')
     def cooking_time_in_minutes(self, obj):
         return f'{obj.cooking_time} мин.'
-    cooking_time_in_minutes.short_description = 'Время приготовления'
 
+    @admin.display(description='Теги')
     def tag_names(self, obj):
         tags = ', '.join(tag.name for tag in obj.tags.all())
         return mark_safe(tags)
-    tag_names.short_description = 'Теги'
 
     def ingredients_summary(self, obj):
         ingredients = '<br>'.join(
-            f"{ingredient.name}: {amount.amount} {amount.measurement_unit}"
+            f'{ingredient.name}: {amount.amount} {amount.measurement_unit}'
             for ingredient, amount in zip(
                 obj.ingredients.all(),
                 obj.ingredient_amounts.all()
