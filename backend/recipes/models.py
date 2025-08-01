@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from .constants import (
+from backend.constants import (
     TAG_NAME_MAX_LENGTH, TAG_SLUG_MAX_LENGTH, RECIPE_NAME_MAX_LENGTH,
     INGREDIENT_NAME_MAX_LENGTH, INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH,
     INGREDIENT_MIN_AMOUNT, INGREDIENT_MAX_AMOUNT,
