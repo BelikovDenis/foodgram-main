@@ -8,9 +8,9 @@ from .models import (
     IngredientInRecipe,
     Recipe,
     ShoppingCart,
-    Subscription,
     Tag,
 )
+from user.models import Subscription
 
 
 class IngredientInRecipeInline(admin.TabularInline):
