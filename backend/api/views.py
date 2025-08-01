@@ -13,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
 from django.core.mail import EmailMessage
-from io import BytesIO
 
 from api.filters import RecipeFilter
 from api.mixins import RecipeActionMixin
