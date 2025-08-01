@@ -24,7 +24,11 @@ from api.serializers import (
     RecipeWriteSerializer,
     ShoppingCartSerializer,
 )
-from api.utils import generate_text_content, generate_csv_content, generate_pdf
+from api.utils.utils import (
+    generate_text_content,
+    generate_csv_content,
+    generate_pdf,
+)
 from recipes.models import (
     Favorite,
     IngredientInRecipe,

@@ -1,5 +1,5 @@
 from rest_framework.pagination import PageNumberPagination
-from .settings import PAGE_SIZE_DEFAULT
+from core.constants import PAGE_SIZE_DEFAULT
 
 
 class CustomLimitPagination(PageNumberPagination):

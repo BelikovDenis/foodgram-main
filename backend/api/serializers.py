@@ -11,9 +11,9 @@ from recipes.models import (
     IngredientInRecipe,
     Recipe,
     ShoppingCart,
-    Subscription,
     Tag,
 )
+from user.models import Subscription
 from user.models import CustomUser
 
 
