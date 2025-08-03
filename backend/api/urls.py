@@ -2,7 +2,8 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api import views
-from api.views import (
+
+from .views import (
     CustomUserViewSet,
     DownloadShoppingCartView,
     FavoriteViewSet,

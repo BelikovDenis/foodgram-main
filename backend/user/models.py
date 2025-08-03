@@ -3,9 +3,9 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 from core.constants import (
+    MAX_AVATAR_FIELD_LENGTH,
     MAX_EMAIL_FIELD_LENGTH,
     MAX_USERNAME_FIELD_LENGTH,
-    MAX_AVATAR_FIELD_LENGTH
 )
 
 

@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from user.models import Subscription
+
 from .models import (
     Favorite,
     Ingredient,
@@ -10,7 +12,6 @@ from .models import (
     ShoppingCart,
     Tag,
 )
-from user.models import Subscription
 
 
 class IngredientInRecipeInline(admin.TabularInline):
@@ -40,26 +41,27 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Теги')
     def tag_names(self, obj):
         tags = ', '.join(tag.name for tag in obj.tags.all())
-        return mark_safe(tags)
+        return tags
 
+    @admin.display(description='Ингредиенты')
     def ingredients_summary(self, obj):
-        ingredients = '<br>'.join(
-            f'{ingredient.name}: {amount.amount} {amount.measurement_unit}'
-            for ingredient, amount in zip(
-                obj.ingredients.all(),
-                obj.ingredient_amounts.all()
+        ingredients = []
+        for ingredient_in_recipe in obj.recipe_ingredients.all():
+            ingredient = ingredient_in_recipe.ingredient
+            ingredients.append(
+                f'{ingredient.name}: '
+                f'{ingredient_in_recipe.amount} '
+                f'{ingredient.measurement_unit}'
             )
-        )
-        return mark_safe(ingredients)
-    ingredients_summary.short_description = 'Ингредиенты'
+        return mark_safe('<br>'.join(ingredients))
 
+    @admin.display(description='Картинка')
     def image_preview(self, obj):
         return format_html('<img src="{}" width="50"/>', obj.image.url)
-    image_preview.short_description = 'Картинка'
 
+    @admin.display(description='Добавлений в избранное')
     def favorites_count(self, obj):
         return obj.favorited_by.count()
-    favorites_count.short_description = 'Добавлений в избранное'
 
 
 @admin.register(Ingredient)
@@ -68,9 +70,9 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name', 'measurement_unit')
     list_filter = ('measurement_unit',)
 
+    @admin.display(description='Применено в рецептах')
     def used_in_recipes_count(self, obj):
         return obj.recipe_set.count()
-    used_in_recipes_count.short_description = 'Применено в рецептах'
 
 
 @admin.register(Tag)

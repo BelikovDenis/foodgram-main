@@ -1,11 +1,17 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from core.constants import (
-    TAG_NAME_MAX_LENGTH, TAG_SLUG_MAX_LENGTH, RECIPE_NAME_MAX_LENGTH,
-    INGREDIENT_NAME_MAX_LENGTH, INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH,
-    INGREDIENT_MIN_AMOUNT, INGREDIENT_MAX_AMOUNT,
-    COOKING_TIME_MIN, COOKING_TIME_MAX
+    COOKING_TIME_MAX,
+    COOKING_TIME_MIN,
+    INGREDIENT_MAX_AMOUNT,
+    INGREDIENT_MEASUREMENT_UNIT_MAX_LENGTH,
+    INGREDIENT_MIN_AMOUNT,
+    INGREDIENT_NAME_MAX_LENGTH,
+    RECIPE_NAME_MAX_LENGTH,
+    TAG_NAME_MAX_LENGTH,
+    TAG_SLUG_MAX_LENGTH,
 )
 
 User = get_user_model()
@@ -95,19 +101,6 @@ class BaseFavoriteShopping(models.Model):
 
 
 class ShoppingCart(BaseFavoriteShopping):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Автор',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='in_shopping_carts',
-        verbose_name='Рецепт',
-    )
-
     class Meta(BaseFavoriteShopping.Meta):
         constraints = [
             models.UniqueConstraint(
@@ -178,19 +171,6 @@ class IngredientInRecipe(models.Model):
 
 
 class Favorite(BaseFavoriteShopping):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='favorites',
-        verbose_name='пользователь',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='favorited_by',
-        verbose_name='избранное',
-    )
-
     class Meta(BaseFavoriteShopping.Meta):
         constraints = [
             models.UniqueConstraint(

@@ -3,7 +3,9 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from core.constants import (
-    DEFAULT_RECIPES_LIMIT, INGREDIENT_MIN_AMOUNT, MAX_RECIPES_LIMIT
+    DEFAULT_RECIPES_LIMIT,
+    INGREDIENT_MIN_AMOUNT,
+    MAX_RECIPES_LIMIT,
 )
 from recipes.models import (
     Favorite,
@@ -13,8 +15,7 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from user.models import Subscription
-from user.models import CustomUser
+from user.models import CustomUser, Subscription
 
 
 class CustomUserBaseSerializer(serializers.ModelSerializer):

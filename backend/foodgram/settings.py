@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+
 from core.constants import PAGE_SIZE_DEFAULT
 
 BASE_DIR = Path(__file__).resolve().parent.parent

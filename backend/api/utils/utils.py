@@ -1,9 +1,10 @@
 import csv
 from io import BytesIO
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
 
 def generate_text_content(data):
