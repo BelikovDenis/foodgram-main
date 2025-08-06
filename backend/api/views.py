@@ -30,7 +30,6 @@ from api.serializers import (
     TagPublicSerializer,
 )
 from api.utils.utils import (
-    decode_base62,
     generate_csv_content,
     generate_pdf,
     generate_text_content,
