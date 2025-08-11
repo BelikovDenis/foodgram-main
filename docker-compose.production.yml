@@ -7,6 +7,10 @@ volumes:
 
 services:
   db:
+    environment:
+      POSTGRES_DB: foodgram
+      POSTGRES_USER: foodgram_user
+      POSTGRES_PASSWORD: your_strong_password
     image: postgres:13.10
     env_file: .env
     volumes:
@@ -20,8 +24,9 @@ services:
       - static:/backend_static
       - media:/backend_media
     command: >
-      sh -c "python manage.py migrate &&
-             gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000"
+      sh -c "./wait_for_db.sh &&
+        python manage.py migrate &&
+        gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000"
     depends_on:
       - db
     restart: always
