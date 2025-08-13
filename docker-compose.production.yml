@@ -8,9 +8,9 @@ volumes:
 services:
   db:
     environment:
-      POSTGRES_DB: foodgram
-      POSTGRES_USER: foodgram_user
-      POSTGRES_PASSWORD: your_strong_password
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     image: postgres:13.10
     env_file: .env
     volumes:
@@ -21,10 +21,11 @@ services:
     image: denisbelikov/foodgram_backend
     env_file: .env
     volumes:
-      - static:/backend_static
-      - media:/backend_media
+      - static:/app/collected_static
+      - media:/app/media
     command: >
-      sh -c "./wait_for_db.sh &&
+      sh -c "python wait_for_db.py &&
+        python manage.py makemigrations recipes user &&
         python manage.py migrate &&
         gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000"
     depends_on:
@@ -34,7 +35,7 @@ services:
   frontend:
     image: denisbelikov/foodgram_frontend
     env_file: .env
-    command: cp -r /app/build/. /frontend_static/
+    command: sh -c "cp -r /app/build/. /frontend_static/ && sleep infinity"
     volumes:
       - static:/frontend_static/
     restart: always

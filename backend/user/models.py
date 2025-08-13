@@ -67,6 +67,7 @@ class Subscription(models.Model):
     )
 
     class Meta:
+        db_table = 'user_subscription'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],

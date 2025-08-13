@@ -1,18 +1,17 @@
 FROM python:3.13-slim
 
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONPATH=/app:$PYTHONPATH
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
-
 COPY requirements.txt .
+COPY wait_for_db.py .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .

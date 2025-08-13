@@ -11,11 +11,14 @@ load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
 
 CSRF_TRUSTED_ORIGINS = [
     "https://foodgram-belikov.servequake.com",
     "http://foodgram-belikov.servequake.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 CSRF_COOKIE_SECURE = True
 
@@ -23,7 +26,8 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
+APPEND_SLASH = False
 
 
 INSTALLED_APPS = [
@@ -145,11 +149,11 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-STATIC_ROOT = BASE_DIR / "collected_static"
+STATIC_ROOT = '/app/collected_static'
 
 MEDIA_URL = "/media/"
 
-MEDIA_ROOT = "/backend_media/"
+MEDIA_ROOT = '/app/media'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
