@@ -14,20 +14,47 @@ SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+CORS_ALLOWED_ORIGINS = [
+    "https://foodgram-belikov.servequake.com",
+    "http://localhost:8000",
+]
+
+CORS_URLS_REGEX = r'^/api/.*$'
+CORS_ALLOW_CREDENTIALS = True
+
 CSRF_TRUSTED_ORIGINS = [
     "https://foodgram-belikov.servequake.com",
     "http://foodgram-belikov.servequake.com",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
-CSRF_COOKIE_SECURE = True
-
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = False
 APPEND_SLASH = False
+
+
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
+
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
 
 
 INSTALLED_APPS = [
@@ -45,6 +72,7 @@ INSTALLED_APPS = [
     "djoser",
     "api.apps.ApiConfig",
     "recipes.apps.RecipesConfig",
+    "corsheaders",
 ]
 
 AUTH_USER_MODEL = "user.CustomUser"
@@ -57,6 +85,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "foodgram.urls"
@@ -147,7 +176,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = "/static/"
+STATIC_URL = "/django_static/"
 
 STATIC_ROOT = '/app/collected_static'
 

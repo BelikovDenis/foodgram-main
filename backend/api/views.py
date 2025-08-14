@@ -29,6 +29,7 @@ from api.serializers import (
     ShoppingCartSerializer,
     TagPublicSerializer,
 )
+from api.utils.base62 import decode_base62
 from api.utils.utils import (
     generate_csv_content,
     generate_pdf,

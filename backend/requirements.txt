@@ -9,6 +9,7 @@ charset-normalizer==3.4.2
 cryptography==45.0.5
 defusedxml==0.7.1
 Django==5.0.6
+django-cors-headers
 django-extensions==4.1
 django-filter==24.2
 djangorestframework==3.16.0
