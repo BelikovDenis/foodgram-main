@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
-
 from core.constants import PAGE_SIZE_DEFAULT
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,48 +11,21 @@ SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,foodgram-belikov.servequake.com').split(',')
 
 CORS_ALLOWED_ORIGINS = [
     "https://foodgram-belikov.servequake.com",
-    "http://localhost:8000",
 ]
-
-CORS_URLS_REGEX = r'^/api/.*$'
-CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://foodgram-belikov.servequake.com",
-    "http://foodgram-belikov.servequake.com",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
 ]
 
+# Безопасность
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = False
-APPEND_SLASH = False
-
-
-CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_SECURE = True
-
-
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
-    },
-}
+SECURE_SSL_REDIRECT = True
 
 
 INSTALLED_APPS = [
@@ -112,6 +83,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",  # Добавлено для админки
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": PAGE_SIZE_DEFAULT,
@@ -126,6 +98,7 @@ DJOSER = {
     "PERMISSIONS": {
         "user_list": ["rest_framework.permissions.AllowAny"],
         "user": ["rest_framework.permissions.AllowAny"],
+        "token_create": ["rest_framework.permissions.AllowAny"],  # Разрешение на создание токена
         "token_destroy": ["rest_framework.permissions.IsAuthenticated"],
     },
     "LOGIN_FIELD": "email",
@@ -135,6 +108,7 @@ DJOSER = {
         "user": "api.serializers.CustomUserBaseSerializer",
         "current_user": "api.serializers.CustomUserWithRecipesSerializer",
     },
+    "HIDE_USERS": False,
 }
 
 WSGI_APPLICATION = "foodgram.wsgi.application"
@@ -145,7 +119,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "foodgram"),
         "USER": os.getenv("POSTGRES_USER", "foodgram_user"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("DB_HOST", "db"),
+        "HOST": "localhost",
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
@@ -176,13 +150,11 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = "/django_static/"
-
-STATIC_ROOT = '/app/collected_static'
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = "/media/"
-
-MEDIA_ROOT = '/app/media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
