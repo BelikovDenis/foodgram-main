@@ -17,6 +17,7 @@ from .models import (
 class IngredientInRecipeInline(admin.TabularInline):
     model = IngredientInRecipe
     extra = 1
+    min_num = 1
 
 
 @admin.register(Recipe)
@@ -33,6 +34,9 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author__username', 'author__email')
     list_filter = ('tags',)
     inlines = (IngredientInRecipeInline,)
+    filter_horizontal = ('tags',)
+    readonly_fields = ('favorites_count',)
+    list_per_page = 20
 
     @admin.display(description='Время приготовления')
     def cooking_time_in_minutes(self, obj):
@@ -41,7 +45,7 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Теги')
     def tag_names(self, obj):
         tags = ', '.join(tag.name for tag in obj.tags.all())
-        return tags
+        return tags or '-'
 
     @admin.display(description='Ингредиенты')
     def ingredients_summary(self, obj):
@@ -53,15 +57,15 @@ class RecipeAdmin(admin.ModelAdmin):
                 f'{ingredient_in_recipe.amount} '
                 f'{ingredient.measurement_unit}'
             )
-        return mark_safe('<br>'.join(ingredients))
+        return mark_safe('<br>'.join(ingredients)) if ingredients else '-'
 
     @admin.display(description='Картинка')
     def image_preview(self, obj):
-        return format_html('<img src="{}" width="50"/>', obj.image.url)
+        return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;"/>', obj.image.url)
 
     @admin.display(description='Добавлений в избранное')
     def favorites_count(self, obj):
-        return obj.favorited_by.count()
+        return obj.favorites.count()  # Исправлено на правильный related_name
 
 
 @admin.register(Ingredient)
@@ -69,28 +73,36 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit', 'used_in_recipes_count')
     search_fields = ('name', 'measurement_unit')
     list_filter = ('measurement_unit',)
+    list_per_page = 50
 
     @admin.display(description='Применено в рецептах')
     def used_in_recipes_count(self, obj):
-        return obj.recipe_set.count()
+        return obj.ingredientinrecipe_set.count()
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name', 'slug')
+    list_per_page = 20
 
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    list_select_related = ('user', 'recipe')
+    list_per_page = 50
 
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe')
+    list_select_related = ('user', 'recipe')
+    list_per_page = 50
 
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user', 'author')
+    list_select_related = ('user', 'author')
+    list_per_page = 50

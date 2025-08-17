@@ -78,6 +78,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        ordering = ['-pub_date']
 
     def __str__(self):
         return self.name
@@ -93,6 +94,7 @@ class BaseFavoriteShopping(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
+        related_name='favorites'  # Добавлен related_name
     )
 
     class Meta:

@@ -1,36 +1,23 @@
 import os
+import socket
 import time
-import psycopg2
-from psycopg2 import OperationalError
 
 
 def wait_for_db():
-    dbname = os.getenv('POSTGRES_DB')
-    user = os.getenv('POSTGRES_USER')
-    password = os.getenv('POSTGRES_PASSWORD')
-    host = 'db'  # Имя сервиса в docker-compose
+    db_host = os.getenv("DB_HOST")
+    db_port = int(os.getenv("DB_PORT", 5432))
 
-    max_retries = 15
-    retry_delay = 5
-
-    for i in range(max_retries):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while True:
         try:
-            conn = psycopg2.connect(
-                dbname=dbname,
-                user=user,
-                password=password,
-                host=host
-            )
-            conn.close()
-            print("PostgreSQL is ready!")
+            s.connect((db_host, db_port))
+            s.close()
+            print(f"PostgreSQL at {db_host}:{db_port} is ready")
             return
-        except OperationalError:
-            print(f"Waiting for PostgreSQL... (attempt {i+1}/{max_retries})")
-            time.sleep(retry_delay)
-    
-    print("Failed to connect to PostgreSQL after multiple attempts")
-    exit(1)
+        except socket.error:
+            print(f"Waiting for PostgreSQL at {db_host}:{db_port}...")
+            time.sleep(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     wait_for_db()
