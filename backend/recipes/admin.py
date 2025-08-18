@@ -61,11 +61,12 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Картинка')
     def image_preview(self, obj):
-        return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;"/>', obj.image.url)
+        return format_html('<img src="{}" width="50"' \
+        'height="50"style="object-fit: cover;"/>', obj.image.url)
 
     @admin.display(description='Добавлений в избранное')
     def favorites_count(self, obj):
-        return obj.favorites.count()  # Исправлено на правильный related_name
+        return obj.favorites.count()
 
 
 @admin.register(Ingredient)

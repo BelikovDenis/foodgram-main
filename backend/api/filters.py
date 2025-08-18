@@ -23,8 +23,8 @@ class RecipeFilter(FilterSet):
             return queryset.none() if value else queryset
 
         field_mapping = {
-            'is_in_shopping_cart': 'shoppingcart__user',  # Исправлено: 'in_shopping_carts__user' -> 'shoppingcart__user'
-            'is_favorited': 'favorite__user',  # Исправлено: 'favorited_by__user' -> 'favorite__user'
+            'is_in_shopping_cart': 'shopping_carts__user',
+            'is_favorited': 'favorites__user',
         }
         field_name = field_mapping.get(name)
 
@@ -33,7 +33,7 @@ class RecipeFilter(FilterSet):
 
         if value:
             return queryset.filter(**{field_name: user})
-        else:  # Добавлено условие else для исключения, когда value=False
+        else:
             return queryset.exclude(**{field_name: user})
 
     class Meta:
@@ -47,4 +47,3 @@ class IngredientFilter(FilterSet):
     class Meta:
         model = Ingredient
         fields = ('name',)
-

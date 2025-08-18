@@ -43,16 +43,15 @@ CSRF_COOKIE_SECURE = True
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-        },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
     },
 }
 
