@@ -29,7 +29,7 @@ from api.serializers import (
     ShoppingCartSerializer,
     TagPublicSerializer,
 )
-from api.utils.base62 import decode_base62
+from api.utils.base62 import decode_base62, encode_base62
 from api.utils.utils import (
     generate_csv_content,
     generate_pdf,
@@ -70,10 +70,12 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['post'],
+        methods=['post', 'delete'],
         permission_classes=[permissions.IsAuthenticated],
+        url_path='favorite',
+        url_name='favorite'
     )
-    def favorite_add(self, request, pk=None):
+    def favorite_action(self, request, pk=None):
         return self.perform_action(
             request=request,
             pk=pk,
@@ -82,16 +84,14 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
             error_message='Рецепт уже в избранном.',
         )
 
-    @favorite_add.mapping.delete
-    def favorite_delete(self, request, pk=None):
-        return self.favorite_add(request, pk)
-
     @action(
         detail=True,
-        methods=['post'],
+        methods=['post', 'delete'],
         permission_classes=[permissions.IsAuthenticated],
+        url_path='shopping_cart',
+        url_name='shopping_cart'
     )
-    def shopping_cart_add(self, request, pk=None):
+    def shopping_cart_action(self, request, pk=None):
         return self.perform_action(
             request=request,
             pk=pk,
@@ -100,10 +100,6 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
             error_message='Рецепт уже в списке покупок.',
         )
 
-    @shopping_cart_add.mapping.delete
-    def shopping_cart_delete(self, request, pk=None):
-        return self.shopping_cart_add(request, pk)
-
     @action(
         detail=True,
         methods=['GET'],
@@ -111,25 +107,16 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
         url_name='get-link',
     )
     def get_link(self, request, pk=None):
-        get_object_or_404(Recipe, pk=pk)
-        url = request.build_absolute_uri(f'/recipes/{pk}/')
-        return Response({'short-link': url}, status=status.HTTP_200_OK)
+        recipe = get_object_or_404(Recipe, pk=pk)
+        short_code = encode_base62(recipe.id)
+        short_url = request.build_absolute_uri(f'/r/{short_code}/')
+        return Response({'short-link': short_url}, status=status.HTTP_200_OK)
 
 
 def redirect_to_recipe(request, short_code):
     recipe_id = decode_base62(short_code)
     recipe = get_object_or_404(Recipe, id=recipe_id)
     return redirect(f"/recipes/{recipe.id}/")
-
-
-class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FavoriteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Recipe.objects.filter(
-            favorited_by__user=self.request.user,
-        )
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -146,16 +133,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
     pagination_class = None
-
-
-class ShoppingCartViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = ShoppingCartSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Recipe.objects.filter(
-            in_shopping_carts__user=self.request.user,
-        ).order_by("-in_shopping_carts__id")
 
 
 class CustomUserViewSet(UserViewSet):
