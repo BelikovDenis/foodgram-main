@@ -52,7 +52,7 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
     queryset = Recipe.objects.order_by('-pub_date').select_related(
         'author'
     ).prefetch_related(
-        'tags', 'ingredients'
+        'tags', 'recipe_ingredients__ingredient'
     )
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend]
@@ -136,6 +136,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = TagPublicSerializer
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -144,6 +145,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
+    pagination_class = None
 
 
 class ShoppingCartViewSet(viewsets.ReadOnlyModelViewSet):

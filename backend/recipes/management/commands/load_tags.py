@@ -1,9 +1,12 @@
-import os
 import csv
 import json
+import os
 from pathlib import Path
+
 from django.core.management.base import BaseCommand
+
 from recipes.models import Tag
+
 
 class Command(BaseCommand):
     help = "Загружает теги из CSV или JSON файла"
@@ -14,13 +17,19 @@ class Command(BaseCommand):
             type=str,
             choices=['csv', 'json', 'auto'],
             default='auto',
-            help="Формат файла (csv, json). По умолчанию auto - определение по расширению"
+            help=(
+                "Формат файла (csv, json). "
+                "По умолчанию auto - определение по расширению"
+            )
         )
         parser.add_argument(
             '--path',
             type=str,
             default=None,
-            help="Путь к файлу данных (если не указан, будет использован стандартный путь)"
+            help=(
+                "Путь к файлу данных (если не указан, "
+                "будет использован стандартный путь)"
+            )
         )
 
     def handle(self, *args, **options):
@@ -30,8 +39,15 @@ class Command(BaseCommand):
             self.stderr.write("Проверьте следующие пути:")
             self.stderr.write("- /app/data/tags.csv (Docker)")
             self.stderr.write("- /app/data/tags.json (Docker)")
-            self.stderr.write(f"- {os.path.join(Path(__file__).resolve().parent.parent.parent.parent.parent, 'data', 'tags.csv')} (локально)")
-            self.stderr.write(f"- {os.path.join(Path(__file__).resolve().parent.parent.parent.parent.parent, 'data', 'tags.json')} (локально)")
+            base_dir = (
+                Path(__file__).resolve().parent.parent.parent.parent.parent
+            )
+            self.stderr.write(
+                f"- {os.path.join(base_dir, 'data', 'tags.csv')} (локально)"
+            )
+            self.stderr.write(
+                f"- {os.path.join(base_dir, 'data', 'tags.json')} (локально)"
+            )
             return
 
         file_format = options['format']
@@ -53,8 +69,9 @@ class Command(BaseCommand):
                 self.load_json(file_path)
             self.stdout.write(self.style.SUCCESS("Теги успешно загружены"))
         except Exception as e:
-            self.stderr.write(self.style.ERROR
-                              (f"Ошибка при загрузке данных: {str(e)}"))
+            self.stderr.write(self.style.ERROR(
+                f"Ошибка при загрузке данных: {str(e)}"
+            ))
 
     def get_file_path(self, user_path=None):
         """Определяет путь к файлу данных"""
@@ -63,17 +80,21 @@ class Command(BaseCommand):
 
         docker_paths = [
             "/app/data/tags.csv",
+            "/app/recipes/data/tags.csv",
             "/app/data/tags.json",
+            "/app/recipes/data/tags.json",
             "/usr/src/app/data/tags.csv",
             "/usr/src/app/data/tags.json"
         ]
 
-        base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
+        base_dir = (
+            Path(__file__).resolve().parent.parent.parent.parent.parent
+        )
         local_paths = [
             os.path.join(base_dir, "data", "tags.csv"),
+            os.path.join(base_dir, "recipes", "data", "tags.csv"),
             os.path.join(base_dir, "data", "tags.json"),
-            os.path.join(base_dir, "data", "ingredients", "tags.csv"),
-            os.path.join(base_dir, "data", "ingredients", "tags.json")
+            os.path.join(base_dir, "recipes", "data", "tags.json")
         ]
 
         for path in docker_paths + local_paths:
@@ -97,7 +118,8 @@ class Command(BaseCommand):
 
                 if len(row) < 2:
                     self.stderr.write(self.style.WARNING(
-                        f"Строка {i+1}: не хватает данных (требуется 2 колонки)"
+                        f"Строка {i + 1}: не хватает данных "
+                        "(требуется 2 колонки)"
                     ))
                     skipped_count += 1
                     continue
@@ -105,7 +127,7 @@ class Command(BaseCommand):
 
                 if not name or not slug:
                     self.stderr.write(self.style.WARNING(
-                        f"Строка {i+1}: пропущено имя или slug"
+                        f"Строка {i + 1}: пропущено имя или slug"
                     ))
                     skipped_count += 1
                     continue
@@ -117,7 +139,7 @@ class Command(BaseCommand):
                 if created:
                     created_count += 1
         self.stdout.write(self.style.SUCCESS(
-            f"Обработано строк: {i+1}\n"
+            f"Обработано строк: {i + 1}\n"
             f"Создано тегов: {created_count}\n"
             f"Пропущено: {skipped_count}"
         ))
@@ -137,7 +159,8 @@ class Command(BaseCommand):
             for i, item in enumerate(data):
                 if not isinstance(item, dict):
                     self.stderr.write(self.style.WARNING(
-                        f"Элемент {i+1}: должен быть объектом, получен {type(item)}"
+                        f"Элемент {i + 1}: должен быть объектом, "
+                        f"получен {type(item)}"
                     ))
                     skipped_count += 1
                     continue
@@ -145,7 +168,7 @@ class Command(BaseCommand):
                 slug = item.get('slug', '').strip()
                 if not name or not slug:
                     self.stderr.write(self.style.WARNING(
-                        f"Элемент {i+1}: пропущено имя или slug"
+                        f"Элемент {i + 1}: пропущено имя или slug"
                     ))
                     skipped_count += 1
                     continue

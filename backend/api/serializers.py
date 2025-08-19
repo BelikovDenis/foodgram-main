@@ -113,7 +113,7 @@ class TagPublicSerializer(serializers.ModelSerializer):
     """Сериализатор публичных данных тегов."""
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'slug')
+        fields = ('id', 'name', 'color', 'slug')
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -195,7 +195,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return obj.favorited_by.filter(user=user).exists()
+        return obj.favorites.filter(user=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         """

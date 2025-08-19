@@ -45,6 +45,7 @@ class CustomUser(AbstractUser):
     objects = UserManager()
 
     class Meta:
+        ordering = ['email']
         verbose_name = 'пользователь'
         verbose_name_plural = 'Пользователи'
 

@@ -20,7 +20,7 @@ class RecipeFilter(FilterSet):
         """
         user = self.request.user
         if user.is_anonymous:
-            return queryset.none() if value else queryset
+            return queryset
 
         field_mapping = {
             'is_in_shopping_cart': 'shopping_carts__user',

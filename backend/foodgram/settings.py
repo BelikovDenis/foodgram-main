@@ -18,42 +18,22 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 CORS_ALLOWED_ORIGINS = [
     "https://foodgram-belikov.servequake.com",
-    "http://localhost:8000",
+    "http://localhost:3000",
 ]
-
-CORS_URLS_REGEX = r'^/api/.*$'
-CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://foodgram-belikov.servequake.com",
-    "http://foodgram-belikov.servequake.com",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_HSTS_SECONDS = 31536000
 SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = False
-APPEND_SLASH = False
-
-
-CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_SECURE = True
-
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'DEBUG',
-    },
-}
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 INSTALLED_APPS = [
