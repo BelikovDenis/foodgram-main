@@ -109,21 +109,10 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'color_preview')
+    list_display = ('name', 'slug')
     search_fields = ('name', 'slug')
     list_per_page = 20
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ('color_preview',)
-
-    @admin.display(description='Цвет')
-    def color_preview(self, obj):
-        if obj.color:
-            return format_html(
-                '<div style="width: 20px; height: 20px; '
-                'background-color: {}; border: 1px solid #000;"></div>',
-                obj.color
-            )
-        return '-'
 
 
 @admin.register(Favorite)

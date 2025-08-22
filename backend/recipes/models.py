@@ -1,9 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-    RegexValidator,
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from core.constants import (
@@ -14,7 +10,6 @@ from core.constants import (
     INGREDIENT_MIN_AMOUNT,
     INGREDIENT_NAME_MAX_LENGTH,
     RECIPE_NAME_MAX_LENGTH,
-    TAG_COLOR_MAX_LENGTH,
     TAG_NAME_MAX_LENGTH,
     TAG_SLUG_MAX_LENGTH,
 )
@@ -32,18 +27,6 @@ class Tag(models.Model):
         max_length=TAG_SLUG_MAX_LENGTH,
         unique=True,
         verbose_name='Slug'
-    )
-    color = models.CharField(
-        max_length=TAG_COLOR_MAX_LENGTH,
-        verbose_name='Цвет в HEX',
-        blank=True,
-        default='#ffffff',
-        validators=[
-            RegexValidator(
-                regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
-                message='Некорректный HEX-код цвета'
-            )
-        ]
     )
 
     class Meta:

@@ -1,6 +1,4 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import EmailMessage
 from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -30,11 +28,7 @@ from api.serializers import (
     TagPublicSerializer,
 )
 from api.utils.base62 import decode_base62, encode_base62
-from api.utils.utils import (
-    generate_csv_content,
-    generate_pdf,
-    generate_text_content,
-)
+from api.utils.utils import generate_text_content
 from recipes.models import (
     Favorite,
     Ingredient,
@@ -116,7 +110,7 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
 def redirect_to_recipe(request, short_code):
     recipe_id = decode_base62(short_code)
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    return redirect(f"/recipes/{recipe.id}/")
+    return redirect('recipe-detail', pk=recipe.id)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -239,7 +233,7 @@ class DownloadShoppingCartView(APIView):
 
     def _prepare_shopping_list_data(self, user):
         qs = IngredientInRecipe.objects.filter(
-            recipe__in_shopping_carts__user=user
+            recipe__shopping_carts__user=user
         )
         if not qs.exists():
             return []
@@ -256,88 +250,13 @@ class DownloadShoppingCartView(APIView):
             for item in aggregated
         ]
 
-    def _text_response(self, content, filename):
+    def get(self, request):
+        data = self._prepare_shopping_list_data(request.user)
+        content = generate_text_content(data)
+        filename = 'shopping_list.txt'
         response = HttpResponse(
             content,
             content_type='text/plain; charset=utf-8'
         )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
-
-    def _csv_response(self, content, filename):
-        response = HttpResponse(
-            content,
-            content_type='text/csv; charset=utf-8'
-        )
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-
-    def _pdf_response(self, buffer, filename):
-        response = HttpResponse(
-            buffer.getvalue(),
-            content_type='application/pdf'
-        )
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-
-    def get(self, request):
-        file_format = request.GET.get('format', 'txt').lower()
-        data = self._prepare_shopping_list_data(request.user)
-        filename = 'shopping_list'
-
-        if file_format == 'pdf':
-            buffer = generate_pdf(data)
-            return self._pdf_response(buffer, f'{filename}.pdf')
-        elif file_format == 'csv':
-            content = generate_csv_content(data)
-            return self._csv_response(content, f'{filename}.csv')
-        else:
-            content = generate_text_content(data)
-            return self._text_response(content, f'{filename}.txt')
-
-    def post(self, request):
-        email = request.data.get('email', request.user.email)
-        send_format = request.data.get('format', 'txt').lower()
-        data = self._prepare_shopping_list_data(request.user)
-        attachments = []
-        content = ''
-
-        if send_format == 'pdf':
-            buffer = generate_pdf(data)
-            attachments.append((
-                'shopping_list.pdf',
-                buffer.getvalue(),
-                'application/pdf'
-            ))
-            content = 'Ваш список покупок во вложении.'
-        elif send_format == 'csv':
-            csv_content = generate_csv_content(data)
-            attachments.append((
-                'shopping_list.csv',
-                csv_content,
-                'text/csv'
-            ))
-            content = 'Ваш список покупок во вложении.'
-        else:
-            text_content = generate_text_content(data)
-            attachments.append((
-                'shopping_list.txt',
-                text_content,
-                'text/plain'
-            ))
-            content = 'Ваш список покупок во вложении.'
-
-        email_msg = EmailMessage(
-            subject='Ваш список покупок',
-            body=content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[email],
-        )
-        for attachment in attachments:
-            email_msg.attach(*attachment)
-        email_msg.send()
-
-        return Response(
-            {'status': 'Список покупок отправлен на вашу почту'},
-            status=status.HTTP_200_OK
-        )
