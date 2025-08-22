@@ -18,14 +18,14 @@ router.register(r"users", CustomUserViewSet, basename="customuser")
 
 urlpatterns = [
     path(
-        "recipes/download_shopping_cart/",
-        DownloadShoppingCartView.as_view(),
-        name="download_shopping_cart",
-    ),
-    path(
         "r/<str:short_code>/",
         redirect_to_recipe,
         name="redirect_to_recipe",
+    ),
+    path(
+        "recipes/download_shopping_cart/",
+        DownloadShoppingCartView.as_view(),
+        name="download_shopping_cart",
     ),
     path("", include(router.urls)),
 ]
