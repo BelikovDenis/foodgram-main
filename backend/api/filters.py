@@ -20,6 +20,8 @@ class RecipeFilter(FilterSet):
         """
         user = self.request.user
         if user.is_anonymous:
+            if value:
+                return queryset.none()
             return queryset
 
         field_mapping = {

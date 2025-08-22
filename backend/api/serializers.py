@@ -1,5 +1,8 @@
+import io
+
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
+from PIL import Image
 from rest_framework import serializers
 
 from core.constants import (
@@ -134,15 +137,22 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор чтения ингредиентов в рецепте."""
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit'
-    )
+    id = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
 
     class Meta:
         model = IngredientInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    def get_id(self, obj):
+        return obj.ingredient.id if obj.ingredient else None
+
+    def get_name(self, obj):
+        return obj.ingredient.name if obj.ingredient else None
+
+    def get_measurement_unit(self, obj):
+        return obj.ingredient.measurement_unit if obj.ingredient else None
 
 
 class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
@@ -163,6 +173,7 @@ class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
 
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор чтения рецептов."""
+    short_link = serializers.CharField(read_only=True)
     tags = TagPublicSerializer(many=True, read_only=True)
     author = CustomUserBaseSerializer(read_only=True)
     ingredients = IngredientInRecipeReadSerializer(
@@ -186,28 +197,20 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             'image',
             'text',
             'cooking_time',
+            'short_link',
         )
 
     def get_is_favorited(self, obj):
-        """
-        Проверяет, добавил ли текущий пользователь рецепт в избранное.
-        """
-        user = self.context.get('request').user
-        if user.is_anonymous:
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
             return False
-        return obj.favorites.filter(user=user).exists()
+        return obj.favorites.filter(user=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        """
-        Проверяет, находится ли рецепт в списке покупок.
-        """
         request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
+        if not request or request.user.is_anonymous:
             return False
-        return ShoppingCart.objects.filter(
-            user=request.user,
-            recipe=obj,
-        ).exists()
+        return obj.shopping_carts.filter(user=request.user).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -309,6 +312,17 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         self.create_ingredients(ingredients_data, instance)
 
         return instance
+
+
+class Base64ImageField(Base64ImageField):
+    ALLOWED_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp', 'heic']
+
+    def get_file_extension(self, filename, decoded_file):
+        try:
+            image = Image.open(io.BytesIO(decoded_file))
+            return image.format.lower()
+        except Exception:
+            return super().get_file_extension(filename, decoded_file)
 
 
 class BaseRecipeRelationSerializer(serializers.ModelSerializer):

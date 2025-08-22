@@ -1,6 +1,12 @@
+import random
+import string
+
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+from PIL import Image
 
 from core.constants import (
     COOKING_TIME_MAX,
@@ -15,6 +21,24 @@ from core.constants import (
 )
 
 User = get_user_model()
+
+
+def validate_image_format(value):
+    try:
+        img = Image.open(value)
+        valid_formats = ['JPEG', 'PNG', 'GIF', 'BMP', 'WEBP', 'HEIC']
+        if img.format not in valid_formats:
+            raise ValidationError(
+                _('Неподдерживаемый формат изображения.'
+                  'Используйте JPEG, PNG, GIF, BMP, WebP или HEIC.')
+            )
+    except Exception:
+        raise ValidationError(_('Невозможно открыть изображение'))
+
+
+def generate_short_code(length=7):
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for _ in range(length))
 
 
 class Tag(models.Model):
@@ -45,6 +69,12 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Автор',
     )
+    short_link = models.CharField(
+        max_length=7,
+        unique=True,
+        blank=True,
+        default=generate_short_code
+    )
     name = models.CharField(
         max_length=RECIPE_NAME_MAX_LENGTH,
         verbose_name='Имя',
@@ -52,6 +82,7 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipes/images/',
         verbose_name='Фото',
+        validators=[validate_image_format]
     )
     text = models.TextField(
         verbose_name='Описание рецепта',

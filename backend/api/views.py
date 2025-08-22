@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import F, Sum
 from django.http import HttpResponse
@@ -27,7 +28,6 @@ from api.serializers import (
     ShoppingCartSerializer,
     TagPublicSerializer,
 )
-from api.utils.base62 import decode_base62, encode_base62
 from api.utils.utils import generate_text_content
 from recipes.models import (
     Favorite,
@@ -102,15 +102,14 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
     )
     def get_link(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        short_code = encode_base62(recipe.id)
-        short_url = request.build_absolute_uri(f'/r/{short_code}/')
+        short_url = request.build_absolute_uri(f'/r/{recipe.short_link}/')
         return Response({'short-link': short_url}, status=status.HTTP_200_OK)
 
 
 def redirect_to_recipe(request, short_code):
-    recipe_id = decode_base62(short_code)
-    recipe = get_object_or_404(Recipe, id=recipe_id)
-    return redirect('recipe-detail', pk=recipe.id)
+    recipe = get_object_or_404(Recipe, short_link=short_code)
+    frontend_url = f"{settings.FRONTEND_BASE_URL}/recipes/{recipe.id}"
+    return redirect(frontend_url)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

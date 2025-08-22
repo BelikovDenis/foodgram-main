@@ -1,14 +1,13 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api import views
-
 from .views import (
     CustomUserViewSet,
     DownloadShoppingCartView,
     IngredientViewSet,
     RecipeViewSet,
     TagViewSet,
+    redirect_to_recipe,
 )
 
 router = DefaultRouter()
@@ -25,7 +24,7 @@ urlpatterns = [
     ),
     path(
         "r/<str:short_code>/",
-        views.redirect_to_recipe,
+        redirect_to_recipe,
         name="redirect_to_recipe",
     ),
     path("", include(router.urls)),

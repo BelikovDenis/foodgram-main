@@ -22,8 +22,12 @@ class IngredientInRecipeInline(admin.TabularInline):
     readonly_fields = ('get_measurement_unit',)
 
     def get_measurement_unit(self, instance):
-        return (instance.ingredient.measurement_unit
-                if instance.ingredient else '-')
+        return (
+            instance.ingredient.measurement_unit
+            if instance.ingredient
+            else '-'
+        )
+
     get_measurement_unit.short_description = 'Единица измерения'
 
 
@@ -32,6 +36,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
+        'short_link',
         'cooking_time_in_minutes',
         'tag_names',
         'ingredients_summary',
@@ -42,7 +47,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
     inlines = (IngredientInRecipeInline,)
     filter_horizontal = ('tags',)
-    readonly_fields = ('favorites_count', 'image_preview')
+    readonly_fields = ['short_link', 'favorites_count', 'image_preview']
     list_per_page = 20
     autocomplete_fields = ('author',)
 
