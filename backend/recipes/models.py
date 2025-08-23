@@ -2,11 +2,8 @@ import random
 import string
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from PIL import Image
 
 from core.constants import (
     COOKING_TIME_MAX,
@@ -19,25 +16,13 @@ from core.constants import (
     TAG_NAME_MAX_LENGTH,
     TAG_SLUG_MAX_LENGTH,
 )
+from core.validators import validate_image_format
 
 User = get_user_model()
 
 
-def validate_image_format(value):
-    try:
-        img = Image.open(value)
-        valid_formats = ['JPEG', 'PNG', 'GIF', 'BMP', 'WEBP', 'HEIC']
-        if img.format not in valid_formats:
-            raise ValidationError(
-                _('Неподдерживаемый формат изображения.'
-                  'Используйте JPEG, PNG, GIF, BMP, WebP или HEIC.')
-            )
-    except Exception:
-        raise ValidationError(_('Невозможно открыть изображение'))
-
-
 def generate_short_code(length=7):
-    chars = string.ascii_letters + string.digits
+    chars = string.ascii_uppercase + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
 
 
@@ -110,6 +95,11 @@ class Recipe(models.Model):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ['-pub_date']
+
+    def save(self, *args, **kwargs):
+        if not self.short_link:
+            self.short_link = generate_short_code()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

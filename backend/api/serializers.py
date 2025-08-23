@@ -1,8 +1,5 @@
-import io
-
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
-from PIL import Image
 from rest_framework import serializers
 
 from core.constants import (
@@ -312,17 +309,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         self.create_ingredients(ingredients_data, instance)
 
         return instance
-
-
-class Base64ImageField(Base64ImageField):
-    ALLOWED_TYPES = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp', 'heic']
-
-    def get_file_extension(self, filename, decoded_file):
-        try:
-            image = Image.open(io.BytesIO(decoded_file))
-            return image.format.lower()
-        except Exception:
-            return super().get_file_extension(filename, decoded_file)
 
 
 class BaseRecipeRelationSerializer(serializers.ModelSerializer):

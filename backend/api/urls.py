@@ -7,7 +7,6 @@ from .views import (
     IngredientViewSet,
     RecipeViewSet,
     TagViewSet,
-    redirect_to_recipe,
 )
 
 router = DefaultRouter()
@@ -17,11 +16,6 @@ router.register(r"ingredients", IngredientViewSet, basename="ingredient")
 router.register(r"users", CustomUserViewSet, basename="customuser")
 
 urlpatterns = [
-    path(
-        "r/<str:short_code>/",
-        redirect_to_recipe,
-        name="redirect_to_recipe",
-    ),
     path(
         "recipes/download_shopping_cart/",
         DownloadShoppingCartView.as_view(),

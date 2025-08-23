@@ -107,9 +107,11 @@ class RecipeViewSet(RecipeActionMixin, viewsets.ModelViewSet):
 
 
 def redirect_to_recipe(request, short_code):
-    recipe = get_object_or_404(Recipe, short_link=short_code)
-    frontend_url = f"{settings.FRONTEND_BASE_URL}/recipes/{recipe.id}"
-    return redirect(frontend_url)
+    short_code_upper = short_code.upper()
+    recipe = get_object_or_404(Recipe, short_link=short_code_upper)
+    frontend_url = getattr(settings, 'FRONTEND_BASE_URL',
+                           'https://foodgram-belikov.servequake.com')
+    return redirect(f'{frontend_url}/recipes/{recipe.id}/')
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

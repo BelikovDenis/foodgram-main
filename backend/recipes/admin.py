@@ -28,8 +28,6 @@ class IngredientInRecipeInline(admin.TabularInline):
             else '-'
         )
 
-    get_measurement_unit.short_description = 'Единица измерения'
-
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):

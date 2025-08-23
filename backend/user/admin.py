@@ -19,13 +19,13 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
     ordering = ('email',)
 
+    @admin.display(description='Рецепты')
     def get_recipes_count(self, obj):
         return obj.recipes.count()
-    get_recipes_count.short_description = 'Рецепты'
 
+    @admin.display(description='Подписчики')
     def get_subscribers_count(self, obj):
         return obj.followers.count()
-    get_subscribers_count.short_description = 'Подписчики'
 
 
 admin.site.unregister(Group)

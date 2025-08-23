@@ -15,7 +15,8 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-FRONTEND_BASE_URL = os.getenv('CSRF_TRUSTED_ORIGINS')
+FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL',
+                                   'https://foodgram-belikov.servequake.com')
 
 
 LOGGING = {
@@ -174,3 +175,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SHORT_LINK_BASE_URL = os.environ.get(
     "SHORT_LINK_BASE_URL", "http://short.link/"
 )
+
+CORS_ALLOWED_ORIGINS = [
+    "https://foodgram-belikov.servequake.com",
+    "http://localhost:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
